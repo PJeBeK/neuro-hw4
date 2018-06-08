@@ -1,4 +1,6 @@
 dataset
 niitools
 spm12
-out
+output/song
+output/genre
+*.asv
