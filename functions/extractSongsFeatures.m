@@ -14,7 +14,7 @@ function [tvalue,zvalue,label] = extractSongsFeatures
     %main part
     for run_id = 1:8
         %calculate t-value for each run
-        label(run_id*25-24:run_id*25) = extractTValueFromOneRun(false,run_id);
+        label(run_id*25-24:run_id*25) = extractTValueFromOneRun(run_id,false,false);
         for i = 1:25
             [~,t] = convertnii2mat(strcat(root,'output\song\run',num2str(run_id),...
                 '\spmT_',sprintf('%04d',i),'.nii'),'untouch');

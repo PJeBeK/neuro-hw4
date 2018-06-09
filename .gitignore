@@ -3,4 +3,5 @@ niitools
 spm12
 output/song
 output/genre
+output/differenceGenre
 *.asv

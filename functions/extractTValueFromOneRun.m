@@ -1,7 +1,11 @@
-function labels=extractTValueFromOneRun(genre_grouped,run_id)
+function labels=extractTValueFromOneRun(run_id,genre_grouped,difference)
     %specify type of extraction (song or genre)
     if genre_grouped == true
-        type = 'genre';
+        if difference == true
+            type = 'differenceGenre';
+        else
+            type = 'genre';
+        end
     else
         type = 'song';
     end
@@ -58,12 +62,29 @@ function labels=extractTValueFromOneRun(genre_grouped,run_id)
         {strcat(root,'output\',type,'\run',num2str(run_id),'\SPM.mat')};
     %define all contrasts
     numbers=1:number_of_stimuli;
+    ind = 0;
+    if difference == true
+        genres = labels;
+        labels = cell(1,10);
+    end
     for i = 1:number_of_stimuli
         contrast.matlabbatch{1,1}.spm.stats.con.consess{1,i} = ...
             contrast.matlabbatch{1,1}.spm.stats.con.consess{1,1};
-        contrast.matlabbatch{1,1}.spm.stats.con.consess{1,i}.tcon.name = labels{i};
-        contrast.matlabbatch{1,1}.spm.stats.con.consess{1,i}.tcon.weights = ....
-            (numbers==i).*1;
+        if difference == false
+            %if we want contrast of each genre or song
+            contrast.matlabbatch{1,1}.spm.stats.con.consess{1,i}.tcon.name = labels{i};
+            contrast.matlabbatch{1,1}.spm.stats.con.consess{1,i}.tcon.weights = ....
+                (numbers==i).*1;
+        else
+            %if we want contrast of difference between genres or songs
+            for j = i+1:number_of_stimuli
+                ind = ind + 1;
+                labels{ind} = strcat(genres{i},'-',genres{j});
+                contrast.matlabbatch{1,1}.spm.stats.con.consess{1,ind}.tcon.name = labels{ind};
+                contrast.matlabbatch{1,1}.spm.stats.con.consess{1,ind}.tcon.weights = ....
+                    (numbers==i).*1 - (numbers==j).*1;
+            end
+        end
     end
     %run contrast manger
     spm_jobman('run',contrast.matlabbatch);

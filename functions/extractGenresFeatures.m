@@ -8,12 +8,12 @@ function [tvalue,zvalue,label] = extractGenresFeatures
     %just minimze figures
     set(0, 'DefaultFigureWindowStyle', 'docked');
     %define variables
-    tvalue=zeros(8,5,160,160,36);
-    zvalue=zeros(8,5,160,160,36);
+    tvalue=zeros(7,5,160,160,36);
+    zvalue=zeros(7,5,160,160,36);
     %main part
     for run_id = 1:7
         %calculate t-value for each run
-        label= extractTValueFromOneRun(true,run_id);
+        label= extractTValueFromOneRun(run_id,true,false);
         for i = 1:5
             %read t-value for each genre
             [~,t] = convertnii2mat(strcat(root,'output\genre\run',num2str(run_id),...
