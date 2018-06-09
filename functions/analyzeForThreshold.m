@@ -18,9 +18,13 @@ function [Predicted_Label, train_accr, val_accr] = analyzeForThreshold(...
     assert(status == 1, 'output directory creation failed');
     
     labels = {'ambient', 'country', 'metal', 'rocknroll', 'symphonic'};
+    
+    % Train model with full data
 
     predict_y = trainModel(train_X, train_y, train_X, p_values_no_cross_val, threshold, model_type);
     confusion_matrix_no_cross_val = confusionmat(train_y, predict_y, 'order', labels);
+    
+    % Perform cross-validation
 
     confusion_matrix = zeros(5, 5);
     accuracies = zeros(1, 5);
@@ -49,20 +53,27 @@ function [Predicted_Label, train_accr, val_accr] = analyzeForThreshold(...
     avg_features = avg_features / 7;
     
     Predicted_Label = trainModel(train_X, train_y, test_X, p_values_no_cross_val, threshold, model_type);
+    
+    % If required, generate a picture
+    
     if ~generate_pic
         return
     end
     f1 = figure('visible', 'off');
     
-    
+    % Draw confusion matrix for full train
     
     subplot(5, 2, [1 3 5 7]);
     heatmap(labels, labels, confusion_matrix_no_cross_val / 35 * 100, 'colormap', jet, 'ColorLimits', [0 100]);
     title('Confusion matrix with full train');
 
+    % Draw confusion matrix for CV
+    
     subplot(5, 2, [2 4 6 8]);
     heatmap(labels, labels, confusion_matrix / 5 * 100, 'colormap', jet, 'ColorLimits', [0 100]);
     title('Cross validated confusion matrix');
+    
+    % Print accuracy and features average
 
     subplot(5, 2, [9 10]);
     xlim = get(gca, 'XLim');
