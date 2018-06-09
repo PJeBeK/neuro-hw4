@@ -1,10 +1,12 @@
-function Predicted_Label = analyzeForThreshold(...
+function [Predicted_Label, train_accr, val_accr] = analyzeForThreshold(...
     train_X, ...
     train_y, ...
     test_X, ...
     p_values_cross_val, ...
     p_values_no_cross_val, ...
-    threshold)
+    threshold, ...
+    model_type, ...
+    generate_pic)
 
     %load root
     [folder, ~, ~] = fileparts(which('analyzeForThreshold'));
@@ -12,11 +14,13 @@ function Predicted_Label = analyzeForThreshold(...
     %create file for output
     [status, ~, ~] = mkdir(strcat(root,'output'));
     assert(status == 1, 'output directory creation failed');
-    [status, ~, ~] = mkdir(strcat(root,'output/LDA/'));
+    [status, ~, ~] = mkdir(strcat(root,'output/', model_type));
     assert(status == 1, 'output directory creation failed');
+    
+    labels = {'ambient', 'country', 'metal', 'rocknroll', 'symphonic'};
 
-    predict_y = trainModel(train_X, train_y, train_X, p_values_no_cross_val, threshold);
-    confusion_matrix_no_cross_val = confusionmat(train_y, predict_y);
+    predict_y = trainModel(train_X, train_y, train_X, p_values_no_cross_val, threshold, model_type);
+    confusion_matrix_no_cross_val = confusionmat(train_y, predict_y, 'order', labels);
 
     confusion_matrix = zeros(5, 5);
     accuracies = zeros(1, 5);
@@ -28,12 +32,15 @@ function Predicted_Label = analyzeForThreshold(...
         train_crop_y = train_y(~out_data);
         val_X = train_X(out_data,:);
         val_y = train_y(out_data);
-        predict_y = trainModel(train_crop_X, train_crop_y, val_X, p_values_cross_val{i}, threshold);
-        cur_conf_mat = confusionmat(val_y, predict_y);
+        predict_y = trainModel(train_crop_X, train_crop_y, val_X, p_values_cross_val{i}, threshold, model_type);
+        cur_conf_mat = confusionmat(val_y, predict_y, 'order', labels);
         accuracies(i) = trace(cur_conf_mat) / 25;
         confusion_matrix = confusion_matrix + cur_conf_mat;
     end
     confusion_matrix = confusion_matrix / 7;
+    
+    train_accr = trace(confusion_matrix_no_cross_val) / (7 * 25);
+    val_accr = mean(accuracies);
 
     avg_features = 0;
     for i = 1:7
@@ -41,11 +48,13 @@ function Predicted_Label = analyzeForThreshold(...
     end
     avg_features = avg_features / 7;
     
-    Predicted_Label = trainModel(train_X, train_y, test_X, p_values_no_cross_val, threshold);
-    
+    Predicted_Label = trainModel(train_X, train_y, test_X, p_values_no_cross_val, threshold, model_type);
+    if ~generate_pic
+        return
+    end
     f1 = figure('visible', 'off');
     
-    labels = {'ambient', 'country', 'metal', 'rocknroll', 'symphonic'};
+    
     
     subplot(5, 2, [1 3 5 7]);
     heatmap(labels, labels, confusion_matrix_no_cross_val / 35 * 100, 'colormap', jet, 'ColorLimits', [0 100]);
@@ -67,6 +76,6 @@ function Predicted_Label = analyzeForThreshold(...
 
     f1.Position(3) = 1400;
     f1.Position(4) = 600;
-    saveas(f1, strcat(root,'output/LDA/', strrep(num2str(threshold, '%.3f'), '.', '_'), '.png'));
+    saveas(f1, strcat(root,'output/', model_type, '/', strrep(num2str(threshold, '%.3f'), '.', '_'), '.png'));
     close(f1);
 end
