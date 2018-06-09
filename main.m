@@ -90,3 +90,25 @@ saveas(gcf, 'output/svm_vs_lda_predictions.png');
 
 % Save result of SVM to output
 save Predicted_Label.mat Predicted_Label2
+
+% **** PHASE 5 *****
+
+% Remove zero columns
+phase5_X = train_X(:, any(train_X));
+phase5_y = train_y;
+
+% Generate gaussian noise with mean 0 and variance equal to one-tenth of
+% data
+noise = zeros(size(phase5_X));
+for i=1:size(phase5_X, 1)
+    noise(i,:) = normrnd(0, var(phase5_X) / 10);
+end
+
+% Add noise and append data
+phase5_X = [phase5_X;phase5_X + noise];
+phase5_y = [phase5_y phase5_y];
+
+% Analyze for various thresholds
+for threshold = thresholds
+    analyzeWithNoise(phase5_X, phase5_y, phase5_X, p_values_cross_val, p_values_no_cross_val, threshold, 'SVM_Phase5', true);
+end
