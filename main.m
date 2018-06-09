@@ -1,3 +1,13 @@
+% **** PHASE 3 *****
+
+%save images which viewing brain activity for each genre
+saveBraingActivityForGenre;
+
+%save images which viewing brain activity for difference between each two
+%genres
+saveBrainActivityForDifferenceGenre;
+
+
 % Load libraries and data
 addpath('functions')
 addpath('dataset')
